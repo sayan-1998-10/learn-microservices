@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  generation: 1
+  labels:
+    app: database-service
+  name: database-service
+  namespace: default
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: database-service
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: database-service
+    spec:
+      containers:
+      - image: postgres:latest
+        imagePullPolicy: IfNotPresent
+        name: database-service
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        env:
+           - name: POSTGRES_PASSWORD
+             value: "1234"
+           - name: POSTGRES_USER
+             value: "admin"
+           - name: POSTGRES_DB
+             value: "postgres"
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: database-service
+  name: database-service
+  namespace: default
+spec:
+  clusterIP: 10.8.10.219
+  clusterIPs:
+  - 10.8.10.219
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app: database-service
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+    

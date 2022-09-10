@@ -1,0 +1,117 @@
+---
+version: '3.7'
+services: 
+  currency-exchange:
+    image: sayandev1998/microservices-learn-com.learn.microservices.currency-exchange:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    depends_on: 
+      - naming-server
+      - spring-cloud-config-server
+      - zipkin-server
+      - db
+    links:
+      - db
+    networks:
+      - common-network
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.CONFIG.IMPORT: optional:configserver:http://spring-cloud-config-server:8888
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      SPRING.DATASOURCE.URL: jdbc:postgresql://db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING.JPA.SHOW-SQL: "true"
+      SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+  currency-conversion:
+    image: sayandev1998/microservices-learn-com.learn.microservices.currency-conversion:0.0.1-SNAPSHOT
+    ports:
+      - "8100:8100"
+    depends_on:
+      - naming-server
+      - spring-cloud-config-server
+      - zipkin-server
+    networks:
+      - common-network
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.CONFIG.IMPORT: optional:configserver:http://spring-cloud-config-server:8888
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+
+  api-gateway:
+    image: sayandev1998/microservices-learn-com.learn.microservices.gateway:0.0.1-SNAPSHOT
+    ports:
+      - "8765:8765"
+    depends_on:
+      - naming-server
+      - spring-cloud-config-server
+      - zipkin-server
+    networks:
+      - common-network
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.CONFIG.IMPORT: optional:configserver:http://spring-cloud-config-server:8888
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+
+  spring-cloud-config-server:
+    image: sayandev1998/microservices-learn-com.learn.microservices.configserver:0.0.1-SNAPSHOT
+    ports:
+      - "8888:8888"
+    networks:
+      - common-network
+    depends_on:
+      - zipkin-server
+    environment:
+      SPRING.CLOUD.CONFIG.SERVER.GIT.URI: https://github.com/sayan-1998-10/learn-microservices.git
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+
+  naming-server:
+    image: sayandev1998/microservices-learn-com.learn.microservices.naming-server:0.0.1-SNAPSHOT
+    ports:
+      - "8761:8761"
+    depends_on:
+      - zipkin-server
+    networks:
+      - common-network
+    environment:
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      
+  zipkin-server:
+    image: openzipkin/zipkin:2.23
+    mem_limit: 300m
+    ports:
+      - "9411:9411"
+    networks: 
+      - common-network
+    restart: always #Restart if there is a problem starting up
+  
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - "5438:5433"
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes: 
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - common-network
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_USER: admin
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 9443:8080
+
+networks:
+  common-network:
+    name: common-network

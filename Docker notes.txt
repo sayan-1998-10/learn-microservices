@@ -1,0 +1,45 @@
+1. The level at which virtualization happens - virtualization happens at hardware level vs. OS level
+2. The type of isolation achieved - isolation of machines vs. isolation of processes
+3. How resources are accessed - via hypervisor vs. via kernel features such as namespace and cgroups
+4. Flexibility of hardware vs. portability
+
+
+COmmands:-
+
+-d = detached mode
+-i = interactive mode
+-a = All
+-f = Follow logs
+
+docker run -i -t <image_name>
+docker run -d -p 80:80 <image_name>
+
+For restart policy (eg. starting databases, we can use docker run -d --restart=always <image_id>
+
+docker start <container_id>
+docker stop <container_id> [GRACEFUL SHUTDOWN - SIGTERM]
+docker kill <contaienr_id> [Direct kill - SIGKILL]
+docker container prune [Removes all stoppd containers]
+
+docker search <image_name>
+docker pull <image_name>
+docker images
+docker image history <image_id>
+docker image inspect <image_id>
+
+docker tag <old_tag> <new_tag>   [By default, only the latest tag is used for downloading]
+
+docker container ls
+docker container ls -a
+docker container create <image_id>
+docker container pause <container_id>
+docker container unpause <container_id>
+
+For logging :-
+
+docker logs <container_id>
+docker logs -f <container_id>
+
+Control the memory and cpu i/o allocated to container :-
+
+docker run -d -m 512m --cpu-quota 5000 redis
