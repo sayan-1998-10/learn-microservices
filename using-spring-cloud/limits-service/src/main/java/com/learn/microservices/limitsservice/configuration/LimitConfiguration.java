@@ -1,11 +1,11 @@
 package com.learn.microservices.limitsservice.configuration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
-@Component
-@ConfigurationProperties("limits-service")
-public class Configuration {
+@Configuration
+@ConfigurationProperties(prefix = "limits-service")
+public class LimitConfiguration {
 
 	int minimum;
 	int maximum;
